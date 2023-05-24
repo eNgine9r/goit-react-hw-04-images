@@ -25,6 +25,7 @@ export default function App() {
     setIsInitialLoad(false);
   };
 
+useEffect(() => {
   const getImages = async () => {
     setOnLoading(true);
     try {
@@ -42,11 +43,11 @@ export default function App() {
     }
   };
 
-  useEffect(() => {
-    if (!isInitialLoad) {
-      getImages();
-    }
-  }, [searchImages, page]);
+  if (!isInitialLoad) {
+    getImages();
+  }
+}, [searchImages, page, isInitialLoad]);
+
 
   const onLoadMore = () => {
     setPage(page => page + 1);
