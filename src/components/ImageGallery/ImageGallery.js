@@ -2,12 +2,13 @@ import PropTypes from 'prop-types';
 import ImageGalleryItem from 'components/ImageGalleryItem/ImageGalleryItem';
 import css from './ImageGallery.module.css';
 
-const ImageGallery = ({ images, toggleModal, openModal }) => {
+export default function ImageGallery ({ images, onLoadMore, openModal }) {
   return (
     <ul className={css.ImageGallery}>
       {images.map(({ id, webformatURL, largeImageURL, tags }) => (
         <ImageGalleryItem
           key={id}
+          onLoadMore={onLoadMore}
           webformatURL={webformatURL}
           largeImageURL={largeImageURL}
           tags={tags}
@@ -18,7 +19,6 @@ const ImageGallery = ({ images, toggleModal, openModal }) => {
   );
 };
 
-export default ImageGallery;
 
 ImageGallery.propTypes = {
   images: PropTypes.arrayOf(

@@ -1,7 +1,13 @@
 import PropTypes from 'prop-types';
 import css from './ImageGalleryItem.module.css';
 
-const ImageGalleryItem = ({ webformatURL, largeImageURL, tags, openModal }) => {
+export default function ImageGalleryItem({
+  webformatURL,
+  largeImageURL,
+  tags,
+  openModal
+}) {
+  
   return (
     <li className={css.ImageGalleryItem}>
       <img
@@ -16,8 +22,6 @@ const ImageGalleryItem = ({ webformatURL, largeImageURL, tags, openModal }) => {
     </li>
   );
 };
-
-export default ImageGalleryItem;
 
 ImageGalleryItem.propTypes = {
   webformatURL: PropTypes.string.isRequired,

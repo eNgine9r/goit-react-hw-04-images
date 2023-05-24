@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../services/Pixaby-api';
 import SearchBar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
@@ -6,80 +6,76 @@ import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
 import Button from './Button/Button';
 
-export class App extends Component {
-  state = {
-    images: [],
-    searchImages: '',
-    page: 1,
-    isLoading: false,
-    showModal: false,
-    modalImage: '',
-    error: null,
-    showLoadMoreBTN: false,
+export default function App() {
+  const [images, setImages] = useState([]);
+  const [searchImages, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [isLoading, setOnLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [modalImage, setUrlModal] = useState('');
+  const [error, setError] = useState('');
+  const [showLoadMoreBTN, setShowBtn] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  const onChangeImages = query => {
+    setQuery(query);
+    setPage(1);
+    setImages([]);
+    setError(null);
+    setIsInitialLoad(false);
   };
-  componentDidUpdate(prevProps, prevState) {
-    const { searchImages, page } = this.state;
-    if (prevState.searchImages !== searchImages || prevState.page !== page) {
-      this.getImages(searchImages, page);
+
+  const getImages = async () => {
+    setOnLoading(true);
+    try {
+      const newImages = await api.fetchImages({ searchImages, page });
+      setImages(prevImages => [...prevImages, ...newImages]);
+      setShowBtn(newImages.length >= 12);
+      if (newImages.length === 0) {
+        alert('Sorry, we did not find any images');
+        setShowBtn(false);
+      }
+    } catch (error) {
+      setError(error);
+    } finally {
+      setOnLoading(false);
     }
-  }
-
-  onChangeImages = query => {
-    this.setState({ searchImages: query, page: 1, images: [], error: null });
   };
 
-async getImages() {
-  const { searchImages, page } = this.state;
-  this.setState({ isLoading: true });
-  try {
-    const hits = await api.fetchImages({ searchImages, page });
-    this.setState(prevState => ({
-      images: [...prevState.images, ...hits],
-      total: hits.totalHits,
-      showLoadMoreBTN: hits.length >= 12,
-    }));
-    if (hits.length === 0) {
-      alert('Sorry, we did not find any images');
-      this.setState({ showLoadMoreBTN: false });
+  useEffect(() => {
+    if (!isInitialLoad) {
+      getImages();
     }
-  } catch (error) {
-    this.setState({ error });
-  } finally {
-    this.setState({ isLoading: false });
-  }
-};
+  }, [searchImages, page]);
 
-  onLoadMore = () => {
-    this.setState(prev => ({ page: prev.page + 1 }));
+  const onLoadMore = () => {
+    setPage(page => page + 1);
   };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({ showModal: !showModal }));
+  const toggleModal = () => {
+    setShowModal(prevShowModal => !prevShowModal);
   };
 
-  openModal = largeURL => {
-    this.setState({ modalImg: largeURL });
-    this.toggleModal();
+  const openModal = largeURL => {
+    setUrlModal(largeURL);
+    toggleModal();
   };
 
-  onCloseModal = () => {
-    this.setState({ showModal: false, largeURL: ''});
-  };
-
-    render() {
-    const { images, isLoading, error, showModal, modalImg, showLoadMoreBTN} =
-      this.state;
-    return (
-      <div>
-        {showModal && <Modal modalURL={modalImg} onClose={this.toggleModal} />}
-        {error && <p>Oops!</p>}
-        <SearchBar onSubmit={this.onChangeImages} disabled={isLoading} />
-        {images.length !== 0 && (
-          <ImageGallery images={images} openModal={this.openModal}></ImageGallery>
-        )}
-        {isLoading && <Loader />}
-        {showLoadMoreBTN && <Button onClick={this.onLoadMore} />}
-      </div>
-    );
-  }
+  return (
+    <div>
+      {showModal && <Modal modalURL={modalImage} onClose={toggleModal} />}
+      {error && <p>Oops!</p>}
+      <SearchBar onSubmit={onChangeImages} disabled={isLoading} />
+      {!isInitialLoad && images.length !== 0 && (
+        <ImageGallery
+          images={images}
+          openModal={openModal}
+          onLoadMore={onLoadMore}
+          keyExtractor={image => image.id} // Унікальний ключ для кожного елемента
+        />
+      )}
+      {isLoading && <Loader />}
+      {!isInitialLoad && showLoadMoreBTN && <Button onLoadMore={onLoadMore} />}
+    </div>
+  );
 }

@@ -1,45 +1,42 @@
-import { Component } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 import css from './Searchbar.module.css';
 
-export default class Searchbar extends Component {
-  state = {
-    image: '',
-  };
+export default function Searchbar({ onSubmit }) {
+  const [image, setQuery] = useState('');
 
-  handleChange = e => {
+  const handleChange = e => {
     const query = e.currentTarget.value.trim().toLowerCase();
-    this.setState({ image: query });
+    setQuery(query);
   };
 
-  onSubmit = evt => {
-    evt.preventDefault();
-    if (this.state.image === '') {
+  const handleSubmit = e => {
+    e.preventDefault();
+    if (image === '') {
       return alert('Sorry. There are no images...');
     }
-    this.props.onSubmit(this.state.image);
-    this.setState({ image: '' });
+    onSubmit(image);
+    setQuery('');
   };
-  render() {
-    const { image } = this.state;
-    return (
-      <header className={css.Searchbar}>
-        <form className={css.SearchForm} onSubmit={this.onSubmit}>
-          <button type="submit" className={css.SearchForm__button}>
-            <span className={css.SearchForm__buttonLabel}>Search</span>
-          </button>
-          <input
-            className={css.SearchForm__input}
-            type="text"
-            placeholder="Search images and photos"
-            value={image}
-            onChange={this.handleChange}
-          />
-        </form>
-      </header>
-    );
-  }
+
+
+  return (
+    <header className={css.Searchbar}>
+      <form className={css.SearchForm} onSubmit={handleSubmit}>
+        <button type="submit" className={css.SearchForm__button}>
+          <span className={css.SearchForm__buttonLabel}>Search</span>
+        </button>
+        <input
+          className={css.SearchForm__input}
+          type="text"
+          placeholder="Search images and photos"
+          value={image}
+          onChange={handleChange}
+        />
+      </form>
+    </header>
+  );
 }
 
 Searchbar.propTypes = {
